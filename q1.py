@@ -50,7 +50,6 @@ def sequenceGenerator():
 
 """
 Parameters of def forward()
-
 pi -> Weather probability -> Random Initial Probability that I've made up... 
 A -> Weather transmission probabilities 
 B -> Weather observations probabilities -> Emission probabilities
@@ -61,34 +60,43 @@ def forward(obs_seq, pi, A, B):
     T = len(obs_seq)  # length of the observed sequence. OUT -> 20
     N = A.shape[0]  # length of the weather transmission probabilities. OUT -> 2 [[0.3 0.7][0.7 0.3]]
 
-    print("Length of observed sequence is ->", T)
-    print("Length of transmission probabilities table is ->", N)
+    # print("Length of observed sequence is ->", T)
+    # print("Length of transmission probabilities table is ->", N)
     alpha = np.zeros((T, N))
-    alpha[0] = pi * B[:, obs_seq[0]]
+    alpha[0] = pi * B[:, obs_seq[0]]  # initializing the first value to the alpha(zeroes) array
     for t in range(1, T):
         alpha[t] = np.inner(alpha[t - 1], A) * B[:, obs_seq[t]]
-
     return alpha
 
 
 def likelihood(alpha):
     # returns the sum of 2 values in alpha[-1] tuple. Which is the last tuple in the alpha[] 2d-array.
+
     return alpha[-1].sum()
 
 
 Seq = np.array(sequenceGenerator())
-
 # returns just the first Nth sequence -> Seq[N]
 alpha = forward(Seq[0], weatherProb, weatherTransitionProb, weatherObservationProb)
 
 
-# returns all the sequences
+# returns probability of all sequences
 def accumulator():
-    return [(forward(Seq[i], weatherProb, weatherTransitionProb, weatherObservationProb)) for i in range(0, len(Seq))]
+    return [likelihood((forward(Seq[i], weatherProb, weatherTransitionProb, weatherObservationProb))) for i in
+            range(0, len(Seq))]
 
 
-# print(accumulator())
-print(likelihood(alpha))
+# another accumulator that prints the occurrence probabilities of all the sequences
+# Use it to display occurrence probability for each sequence
+def accumulator_all():
+    each_prob = accumulator()
+    for i in range(0, len(each_prob)):
+        print("Likelihood for this sequence -> ", Seq[i], "to be occured is ->", each_prob[i])
 
-# print(alpha)
-# print(likelihood(alpha))
+
+# Use this one to display the occurrence probability of just the first Sequence.
+# print("Likelihood for this sequence -> ", Seq[0], "to be occured is ->", likelihood(alpha))
+
+# Use this to display the occurrence probability of entire Sequence.
+# accumulator_all()
+
